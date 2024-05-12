@@ -28,7 +28,7 @@ def load_index(index_name: str) -> Index or None:
             print("Creating index")
             pc.create_index(
                 name=index_name,
-                dimension=384,
+                dimension=4096,
                 metric="cosine",
                 spec=ServerlessSpec(
                     cloud="aws",
@@ -55,3 +55,6 @@ def connect_mongo(mongo_uri: str) -> MongoClient or None:
     except Exception as e:
         print(e)
         return None
+
+
+load_index("subject-tutor")
