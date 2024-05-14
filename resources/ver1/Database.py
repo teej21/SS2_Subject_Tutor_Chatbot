@@ -57,4 +57,4 @@ def connect_mongo(mongo_uri: str) -> MongoClient or None:
         return None
 
 
-load_index("subject-tutor")
+load_index("subject-tutor-cohere")

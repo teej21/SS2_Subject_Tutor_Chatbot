@@ -1,6 +1,6 @@
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
 
-markdown_path = '../specific_domain_knowledge_docs/demoData.md'
+markdown_path = '../../rag/specific_domain_knowledge_docs/demoData.md'
 
 loader = UnstructuredMarkdownLoader(markdown_path)
 

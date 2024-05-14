@@ -2,7 +2,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import CharacterTextSplitter
 from _03_embeddings_model import embeddings
 
-loader = TextLoader("../resources/specific_domain_knowledge_docs/state_of_the_union.md")
+loader = TextLoader("../rag/specific_domain_knowledge_docs/state_of_the_union.md")
 documents = loader.load()
 text_splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=0)
 docs = text_splitter.split_documents(documents)
