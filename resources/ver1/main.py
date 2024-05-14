@@ -29,7 +29,7 @@ def load_sentences(file_path):
     return sentences_list
 
 
-sentences = load_sentences('../specific_domain_knowledge_docs/demoData.md')
+sentences = load_sentences('../../rag/specific_domain_knowledge_docs/demoData.md')
 
 # print(sentences)
 embeddings = generate_embeddings(sentences)
