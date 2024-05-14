@@ -1,3 +1,8 @@
+import time
+
+from langchain.embeddings import CacheBackedEmbeddings
+from langchain.storage import LocalFileStore
+from langchain_cohere import CohereEmbeddings, ChatCohere
 from langchain_community.document_loaders import *
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
@@ -31,7 +36,7 @@ def load_docs(path: str):
 
 # print(load_docs('../resources/specific_domain_knowledge_docs/state_of_the_union.md'))
 
-def get_text_splitter_from_docs(docs: list[Document], chunk_size: int = 500, chunk_overlap: int = 0):
+def get_text_splitter_from_docs(docs: list[Document], chunk_size: int = 500, chunk_overlap: int = 100):
     """
     Split documents into chunks
     """
@@ -43,9 +48,18 @@ def get_embedder():
     """
     Get the embeddings model
     """
-    return TogetherEmbeddings(
-        model="togethercomputer/m2-bert-80M-8k-retrieval"
+    # underlying_embeddings = TogetherEmbeddings(
+    #     model="togethercomputer/m2-bert-80M-8k-retrieval"
+    # )
+    underlying_embeddings = CohereEmbeddings(cohere_api_key=os.environ["COHERE_API_KEY"])
+
+    store = LocalFileStore("./cache/")
+
+    cached_embedder = CacheBackedEmbeddings.from_bytes_store(
+        underlying_embeddings, store, namespace=underlying_embeddings.model
     )
+
+    return cached_embedder
 
 
 def get_vector_store(docs: list[Document], embeddings, index_name: str):
@@ -55,11 +69,11 @@ def get_vector_store(docs: list[Document], embeddings, index_name: str):
     return PineconeVectorStore.from_documents(docs, embeddings, index_name=index_name)
 
 
-def get_retriever(vector_store: VectorStore, search_kwargs: dict):
+def get_retriever(vector_store: VectorStore):
     """
     Get the retriever
     """
-    return vector_store.as_retriever(search_kwargs=search_kwargs)
+    return vector_store.as_retriever()
 
 
 def get_chat_chain(retriever):
@@ -84,7 +98,8 @@ def get_chat_chain(retriever):
     return (
             {"context": retriever | format_docs, "question": RunnablePassthrough()}
             | prompt
-            | ChatTogether()
+            | ChatCohere()
+            # | ChatTogether()
             | StrOutputParser()
     )
 
@@ -93,10 +108,40 @@ def get_answer(question: str):
     """
     Get the answer to a question
     """
-    docs = load_docs_from_dir('../resources/specific_domain_knowledge_docs', 'md')
+    # docs = load_docs_from_dir('./rag/specific_domain_knowledge_docs')
+    start_time = time.time()
+    docs = load_docs_from_dir('specific_domain_knowledge_docs')
+    end_time = time.time()
+    print(f'###### **Loading Docs Time**: {end_time - start_time:.2f} seconds')
+
+    start_time = time.time()
     text_splitter = get_text_splitter_from_docs(docs)
+    end_time = time.time()
+    print(f'###### **Text Splitter Time**: {end_time - start_time:.2f} seconds')
+
+    start_time = time.time()
     embeddings = get_embedder()
-    vector_store = get_vector_store(text_splitter, embeddings, "subject-tutor")
-    retriever = get_retriever(vector_store, search_kwargs={"k": 1})
+    end_time = time.time()
+    print(f'###### **Embeddings Time**: {end_time - start_time:.2f} seconds')
+
+    start_time = time.time()
+    vector_store = get_vector_store(text_splitter, embeddings, "subject-tutor-cohere")
+    end_time = time.time()
+    print(f'###### **Vector Store Time**: {end_time - start_time:.2f} seconds')
+
+    start_time = time.time()
+    retriever = get_retriever(vector_store)
+    end_time = time.time()
+    print(f'###### **Retriever Time**: {end_time - start_time:.2f} seconds')
+
+    start_time = time.time()
     model = get_chat_chain(retriever)
-    return model.invoke(question)
+    end_time = time.time()
+    print(f'###### **Model Time**: {end_time - start_time:.2f} seconds')
+
+    start_time = time.time()
+    answer = model.invoke(question)
+    end_time = time.time()
+    print(f'###### **Answer Time**: {end_time - start_time:.2f} seconds')
+
+    return answer
