@@ -29,11 +29,10 @@ def load_sentences(file_path):
     return sentences_list
 
 
-sentences = load_sentences('../../rag/specific_domain_knowledge_docs/demoData.md')
+sentences = load_sentences('../specific_domain_knowledge_docs/demoData.md')
 
 # print(sentences)
 embeddings = generate_embeddings(sentences)
-
 
 """
 sentense: "Hiện nay, trường đại học hà nội đang có hiệu trưởng là thầy Nguyễn Kim Sơn"
@@ -43,6 +42,7 @@ values: [0.1, 0.2, 0.3, 0.4, 0.5]
 --> promt-> vector -> query -> result -> id -> query from mongoDB by id
 
 """
+
 
 def upsert_index(index_to_upsert, vectors):
     """

@@ -1,4 +1,4 @@
-from rag import *
+from rag_utils import *
 
 
 import time
@@ -27,16 +27,14 @@ def estimateResponseTime(question):
           f'```\n'
           f'{answer}'
           f'\n```')
-    print('-'*10)
+    print('-' * 10)
 
 
 questions = [
-    "What is the course about?",
-    "How to get good assessment in this course?",
-    "What is the course structure?",
+    "Give me short advice to get good assessment in this course?",
+    "Give me Module Code of this course?",
     "What is the course duration?"
 ]
-
 for question in questions:
     estimateResponseTime(question)
 print(get_answer("When student learn about Sorting Algorithms Part II"))
