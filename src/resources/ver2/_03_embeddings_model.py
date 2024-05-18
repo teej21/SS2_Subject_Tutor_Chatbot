@@ -5,4 +5,3 @@ import os
 load_dotenv()
 
 embeddings = CohereEmbeddings(cohere_api_key=os.environ["COHERE_API_KEY"])
-

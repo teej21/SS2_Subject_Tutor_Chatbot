@@ -10,7 +10,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.vectorstores import VectorStore
 from langchain_text_splitters import *
-from langchain_together import ChatTogether
 from langchain_together.embeddings import *
 from langchain_pinecone import PineconeVectorStore
 from dotenv import load_dotenv
@@ -36,7 +35,7 @@ def load_docs(path: str):
 
 # print(load_docs('../resources/specific_domain_knowledge_docs/state_of_the_union.md'))
 
-def get_text_splitter_from_docs(docs: list[Document], chunk_size: int = 500, chunk_overlap: int = 100):
+def get_text_splitter_from_docs(docs: list[Document], chunk_size: int = 1000, chunk_overlap: int = 200):
     """
     Split documents into chunks
     """
@@ -48,9 +47,6 @@ def get_embedder():
     """
     Get the embeddings model
     """
-    # underlying_embeddings = TogetherEmbeddings(
-    #     model="togethercomputer/m2-bert-80M-8k-retrieval"
-    # )
     underlying_embeddings = CohereEmbeddings(cohere_api_key=os.environ["COHERE_API_KEY"])
 
     store = LocalFileStore("./cache/")
@@ -99,36 +95,36 @@ def get_chat_chain(retriever):
             {"context": retriever | format_docs, "question": RunnablePassthrough()}
             | prompt
             | ChatCohere()
-            # | ChatTogether()
             | StrOutputParser()
     )
 
 
+start_time = time.time()
+# docs = load_docs_from_dir('./utils/specific_domain_knowledge_docs')
+docs = load_docs_from_dir('./src/resources/specific_domain_knowledge_docs')
+end_time = time.time()
+print(f'###### **Loading Docs Time**: {end_time - start_time:.2f} seconds')
+
+start_time = time.time()
+text_splitter = get_text_splitter_from_docs(docs)
+end_time = time.time()
+print(f'###### **Text Splitter Time**: {end_time - start_time:.2f} seconds')
+
+start_time = time.time()
+embeddings = get_embedder()
+end_time = time.time()
+print(f'###### **Embeddings Time**: {end_time - start_time:.2f} seconds')
+
+start_time = time.time()
+vector_store = get_vector_store(text_splitter, embeddings, "subject-tutor-cohere")
+end_time = time.time()
+print(f'###### **Vector Store Time**: {end_time - start_time:.2f} seconds')
+
+
 def get_answer(question: str):
     """
-    Get the answer to a question
+      Get the answer to a question
     """
-    # docs = load_docs_from_dir('./rag/specific_domain_knowledge_docs')
-    start_time = time.time()
-    docs = load_docs_from_dir('specific_domain_knowledge_docs')
-    end_time = time.time()
-    print(f'###### **Loading Docs Time**: {end_time - start_time:.2f} seconds')
-
-    start_time = time.time()
-    text_splitter = get_text_splitter_from_docs(docs)
-    end_time = time.time()
-    print(f'###### **Text Splitter Time**: {end_time - start_time:.2f} seconds')
-
-    start_time = time.time()
-    embeddings = get_embedder()
-    end_time = time.time()
-    print(f'###### **Embeddings Time**: {end_time - start_time:.2f} seconds')
-
-    start_time = time.time()
-    vector_store = get_vector_store(text_splitter, embeddings, "subject-tutor-cohere")
-    end_time = time.time()
-    print(f'###### **Vector Store Time**: {end_time - start_time:.2f} seconds')
-
     start_time = time.time()
     retriever = get_retriever(vector_store)
     end_time = time.time()
@@ -138,10 +134,9 @@ def get_answer(question: str):
     model = get_chat_chain(retriever)
     end_time = time.time()
     print(f'###### **Model Time**: {end_time - start_time:.2f} seconds')
-
-    start_time = time.time()
+    s = time.time()
     answer = model.invoke(question)
-    end_time = time.time()
-    print(f'###### **Answer Time**: {end_time - start_time:.2f} seconds')
+    e = time.time()
+    print(f'###### **Answer Time**: {e - s:.2f} seconds')
 
     return answer

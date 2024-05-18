@@ -1,4 +1,4 @@
-# Giảng viên 
+# Giảng viên
 
 ## Thông tin giảng viên
 
@@ -6,12 +6,9 @@
 - **Email:**
 - **Số điện thoại:**
 
-
 # Thời gian học
 
 ## Thời gian học
-
-
 
 # Mục tiêu học tập
 
