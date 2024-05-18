@@ -1,5 +1,6 @@
 from rag_utils import *
 
+
 import time
 
 
@@ -36,3 +37,5 @@ questions = [
 ]
 for question in questions:
     estimateResponseTime(question)
+print(get_answer("When student learn about Sorting Algorithms Part II"))
+
